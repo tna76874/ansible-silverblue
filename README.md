@@ -17,6 +17,6 @@ Lade dir das Betriebssystem von der offiziellen Website herunter und installiere
 3. Führe folgenden Befehl aus, um die automatische Einrichtung zu starten:
 
 ```bash
-curl -L [https://raw.githubusercontent.com/tna76874/ansible-silverblue/main/setup.sh](https://raw.githubusercontent.com/tna76874/ansible-silverblue/main/setup.sh) | bash
+curl -L https://raw.githubusercontent.com/tna76874/ansible-silverblue/main/setup.sh | bash
 
 ```
