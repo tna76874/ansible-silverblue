@@ -39,3 +39,7 @@ flatpak_apps:
   - { package: "com.nextcloud.desktopclient.nextcloud", repo: "flathub", state: present }
   - { package: "org.zotero.Zotero", repo: "flathub", state: present }
   - { package: "fr.romainvigier.MetadataCleaner", repo: "flathub", state: present }
+
+firewall_allowed_ports:
+  - "53317/tcp"
+  - "53317/udp"
