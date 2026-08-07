@@ -57,6 +57,7 @@ prepare_environment() {
 
     print_step "Lade Software-Bausteine herunter..."
     ansible-galaxy collection install community.general
+    ansible-galaxy collection install ansible.posix
 }
 
 run_playbook() {
