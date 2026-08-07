@@ -1,0 +1,33 @@
+---
+- name: Benutzer auf dem System ermitteln
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Template für Shell-Konfiguration verteilen
+  ansible.builtin.template:
+    src: custom_aliases.j2
+    dest: "{{ item.value[4] }}/.custom_aliases"
+    owner: "{{ item.key }}"
+    group: "{{ item.key }}"
+    mode: '0644'
+  loop: "{{ ansible_facts.getent_passwd | dict2items }}"
+  when:
+    - item.value[2] | int >= 1000
+    - item.value[2] | int < 65534
+    - item.value[4] != '/'
+    - item.value[4] | length > 0
+
+- name: Sicherstellen, dass .custom_aliases in der .bashrc geladen wird
+  ansible.builtin.lineinfile:
+    path: "{{ item.value[4] }}/.bashrc"
+    line: "[[ -f ~/.custom_aliases ]] && source ~/.custom_aliases"
+    create: true
+    owner: "{{ item.key }}"
+    group: "{{ item.key }}"
+    mode: '0644'
+  loop: "{{ ansible_facts.getent_passwd | dict2items }}"
+  when:
+    - item.value[2] | int >= 1000
+    - item.value[2] | int < 65534
+    - item.value[4] != '/'
+    - item.value[4] | length > 0

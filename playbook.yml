@@ -2,4 +2,5 @@
 - hosts: local
   roles:
     - system_setup
+    - shell_config
     - security
