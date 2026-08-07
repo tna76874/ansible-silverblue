@@ -1,0 +1,22 @@
+---
+- name: Sicherstellen, dass firewalld aktiv und aktiviert ist
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Standard-Zone auf DROP setzen
+  ansible.builtin.firewalld:
+    zone: public
+    target: DROP
+    permanent: true
+    immediate: true
+
+- name: Ausnahmen aus globalen Variablen erlauben
+  ansible.builtin.firewalld:
+    port: "{{ item }}"
+    zone: public
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ firewall_allowed_ports }}"
