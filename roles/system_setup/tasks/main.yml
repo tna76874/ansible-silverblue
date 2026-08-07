@@ -6,9 +6,17 @@
     method: user
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
 
-- name: Beispiel-Flatpak installieren (z.B. Calculator)
+- name: Flatpak-Pakete aus zentraler Liste verwalten
   community.general.flatpak:
-    name: org.gnome.Calculator
-    state: present
+    name: "{{ item.package }}"
+    state: "{{ item.state }}"
     method: user
-    remote: flathub
+    remote: "{{ item.repo | default('flathub') }}"
+    version: "{{ item.version | default(omit) }}"
+  loop: "{{ flatpak_apps }}"
+
+- name: Alle installierten Flatpaks aktualisieren
+  community.general.flatpak:
+    name: "*"
+    state: latest
+    method: user
