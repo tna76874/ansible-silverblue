@@ -9,6 +9,7 @@
   ansible.posix.firewalld:
     zone: public
     target: DROP
+    state: present
     permanent: true
     immediate: true
 
