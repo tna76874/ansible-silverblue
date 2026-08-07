@@ -1,0 +1,14 @@
+---
+- name: Flathub Repository hinzufügen
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    method: user
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+
+- name: Beispiel-Flatpak installieren (z.B. Calculator)
+  community.general.flatpak:
+    name: org.gnome.Calculator
+    state: present
+    method: user
+    remote: flathub
