@@ -16,7 +16,6 @@
   loop: "{{ flatpak_apps }}"
 
 - name: Alle installierten systemweiten Flatpaks aktualisieren
-  community.general.flatpak:
-    name: "*"
-    state: latest
-    method: system
+  ansible.builtin.command:
+    cmd: flatpak update --system --noninteractive
+  changed_when: false
