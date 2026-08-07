@@ -1,4 +1,4 @@
 ---
-- hosts: localhost
+- hosts: local
   roles:
     - system_setup

@@ -1,22 +1,22 @@
 ---
-- name: Flathub Repository hinzufügen
+- name: Flathub Repository systemweit hinzufügen
   community.general.flatpak_remote:
     name: flathub
     state: present
-    method: user
+    method: system
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
 
-- name: Flatpak-Pakete aus zentraler Liste verwalten
+- name: Flatpak-Pakete aus zentraler Liste systemweit verwalten
   community.general.flatpak:
     name: "{{ item.package }}"
     state: "{{ item.state }}"
-    method: user
+    method: system
     remote: "{{ item.repo | default('flathub') }}"
     version: "{{ item.version | default(omit) }}"
   loop: "{{ flatpak_apps }}"
 
-- name: Alle installierten Flatpaks aktualisieren
+- name: Alle installierten systemweiten Flatpaks aktualisieren
   community.general.flatpak:
     name: "*"
     state: latest
-    method: user
+    method: system
