@@ -37,14 +37,9 @@ echo "Aktualisiere pip und installiere ansible-core..."
 pip install --upgrade pip
 pip install ansible-core
 
-# 4. Notwendige Ansible-Collections installieren (z.B. community.general)
-if [ -f "requirements.yml" ]; then
-    echo "Installiere Ansible Collections aus requirements.yml..."
-    ansible-galaxy collection install -r requirements.yml
-else
-    echo "Installiere Standard-Collection community.general..."
-    ansible-galaxy collection install community.general
-fi
+# 4. Notwendige Ansible-Collections installieren
+echo "Installiere Ansible Collection community.general..."
+ansible-galaxy collection install community.general
 
 # 5. Ansible Playbook ausführen
 echo "Starte Ansible Playbook..."
