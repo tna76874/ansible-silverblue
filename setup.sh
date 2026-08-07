@@ -33,11 +33,20 @@ echo "Richte Ansible in einer Python-Sandbox (venv) ein..."
 python3 -m venv venv
 source venv/bin/activate
 
-echo "Aktualisiere pip und installiere Ansible..."
+echo "Aktualisiere pip und installiere ansible-core..."
 pip install --upgrade pip
-pip install ansible community.general
+pip install ansible-core
 
-# 4. Ansible Playbook ausführen
+# 4. Notwendige Ansible-Collections installieren (z.B. community.general)
+if [ -f "requirements.yml" ]; then
+    echo "Installiere Ansible Collections aus requirements.yml..."
+    ansible-galaxy collection install -r requirements.yml
+else
+    echo "Installiere Standard-Collection community.general..."
+    ansible-galaxy collection install community.general
+fi
+
+# 5. Ansible Playbook ausführen
 echo "Starte Ansible Playbook..."
 ansible-playbook playbook.yml
 
