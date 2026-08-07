@@ -11,7 +11,6 @@
     target: DROP
     state: present
     permanent: true
-    immediate: true
 
 - name: Ausnahmen aus globalen Variablen erlauben
   ansible.posix.firewalld:
