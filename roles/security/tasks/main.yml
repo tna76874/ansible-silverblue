@@ -6,14 +6,14 @@
     enabled: true
 
 - name: Standard-Zone auf DROP setzen
-  ansible.builtin.firewalld:
+  ansible.posix.firewalld:
     zone: public
     target: DROP
     permanent: true
     immediate: true
 
 - name: Ausnahmen aus globalen Variablen erlauben
-  ansible.builtin.firewalld:
+  ansible.posix.firewalld:
     port: "{{ item }}"
     zone: public
     state: enabled
