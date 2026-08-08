@@ -3,7 +3,17 @@ set -e
 
 # Konfiguration
 REPO_URL="https://github.com/tna76874/ansible-silverblue.git"
-TARGET_DIR="$HOME/.local/share/silverblue-setup"
+TARGET_DIR="/var/local/silverblue-setup"
+
+# 1. Erzwinge die Ausführung mit Root-Rechten (sudo)
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\033[1;33mDieses Skript benötigt Administratorrechte.\033[0m"
+    echo -e "Bitte gib jetzt einmal dein Computer-Passwort ein."
+    echo -e "\033[1;33mWichtig:\033[0m Die eingegebenen Zeichen bleiben dabei völlig unsichtbar"
+    echo -e "(es erscheinen keine Punkte oder Sterne). Das ist normal –"
+    echo -e "einfach blind tippen und mit Enter bestätigen!\n"
+    exec sudo bash "$0" "$@"
+fi
 
 # Visuelle Hilfsfunktionen für schöneres Ausgabe-Design
 print_banner() {
@@ -29,7 +39,9 @@ check_prerequisites() {
 }
 
 prepare_repository() {
-    print_step "Lade die Einrichtungsdateien herunter..."
+    print_step "Lade die Einrichtungsdateien nach $TARGET_DIR herunter..."
+    mkdir -p "$(dirname "$TARGET_DIR")"
+    
     if [ -d "$TARGET_DIR/.git" ]; then
         echo "Aktualisiere bestehendes Repository in $TARGET_DIR..."
         if ! (cd "$TARGET_DIR" && git reset --hard HEAD && git clean -fd && git pull); then
@@ -40,14 +52,13 @@ prepare_repository() {
         fi
     else
         echo "Klone Repository nach $TARGET_DIR..."
-        mkdir -p "$(dirname "$TARGET_DIR")"
         git clone "$REPO_URL" "$TARGET_DIR"
     fi
     cd "$TARGET_DIR"
 }
 
 prepare_environment() {
-    print_step "Bereite die Installations-Umgebung vor..."
+    print_step "Bereite die Python-Umgebung vor..."
     python3 -m venv venv
     source venv/bin/activate
 
@@ -56,25 +67,20 @@ prepare_environment() {
     pip install ansible-core --quiet
 
     print_step "Lade Software-Bausteine herunter..."
-    ansible-galaxy collection install community.general
-    ansible-galaxy collection install ansible.posix
+    ansible-galaxy collection install community.general --force
+    ansible-galaxy collection install ansible.posix --force
 }
 
 run_playbook() {
-    print_step "Starte die Einrichtung..."
-    echo -e "\033[1;33mWichtig:\033[0m Wenn gleich nach dem Passwort gefragt wird, bleiben die"
-    echo -e "eingegebenen Zeichen völlig unsichtbar (es erscheinen keine Punkte oder Sterne)."
-    echo -e "Das ist normal – einfach blind tippen und mit Enter bestätigen!\n"
-    ansible-playbook playbook.yml --ask-become-pass
+    print_step "Starte die Einrichtung (ohne Passwortabfrage)..."
+    ./venv/bin/ansible-playbook playbook.yml -c local
 }
 
 # Hauptablauf
 print_banner
 
 print_step "Willkommen beim System-Setup!"
-echo -e "Damit dein Computer gleich wie gewünscht eingerichtet werden kann,"
-echo -e "benötigen wir einmal kurz deine Erlaubnis (dein Computer-Passwort)."
-echo -e "Das ist das Passwort, mit dem du dich auch an deinem PC anmeldest.\n"
+echo -e "Das System wird nun eingerichtet.\n"
 
 check_prerequisites
 prepare_repository
@@ -82,5 +88,5 @@ prepare_environment
 run_playbook
 
 echo -e "\n\033[1;32m============================================================\033[0m"
-echo -e "\033[1;32m        Fertig! Dein System wurde erfolgreich eingerichtet.   \033[0m"
+echo -e "\033[1;32m        Fertig! Dein System wurde erfolgreich eingerichtet.    \033[0m"
 echo -e "\n\033[1;32m============================================================\033[0m"
