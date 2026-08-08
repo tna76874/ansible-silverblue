@@ -1,7 +1,32 @@
 ---
 - hosts: local
+  tasks:
+    - name: Load optional configuration files
+      ansible.builtin.include_vars:
+        dir: /var/local/silverblue-config
+        extensions: ['yml', 'yaml']
+      failed_when: false
+      tags: always
+
   roles:
-    - system_setup
-    - shell_config
-    - security
-    - update_routine
+    - role: system_setup
+      tags:
+        - system_setup
+        - flatpak
+
+    - role: shell_config
+      tags:
+        - shell_config
+        - aliases
+        - bash
+
+    - role: security
+      tags:
+        - security
+        - firewall
+
+    - role: update_routine
+      tags:
+        - update_routine
+        - runner
+        - desktop

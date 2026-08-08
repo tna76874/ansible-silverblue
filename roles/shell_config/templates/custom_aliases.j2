@@ -1,1 +1,23 @@
+
+alias update_url='bash <(curl -sL https://raw.githubusercontent.com/tna76874/ansible-silverblue/main/setup.sh)'
+
 alias update='silverblue-update'
+
+update_tag() {
+    local target_dir="/var/local/silverblue-setup"
+    
+    if [ ! -d "$target_dir" ]; then
+        echo -e "\033[1;31mFehler: Setup-Verzeichnis $target_dir nicht gefunden.\033[0m"
+        return 1
+    }
+
+    cd "$target_dir" || return 1
+
+    if [ $# -eq 0 ]; then
+        echo -e "\033[1;32mStarte vollständiges Ansible-Playbook...\033[0m"
+        sudo ./venv/bin/ansible-playbook playbook.yml -c local
+    else
+        echo -e "\033[1;32mStarte Ansible-Playbook mit Tags: $*\033[0m"
+        sudo ./venv/bin/ansible-playbook playbook.yml -c local --tags "$@"
+    fi
+}

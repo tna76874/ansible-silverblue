@@ -57,6 +57,12 @@ prepare_repository() {
     cd "$TARGET_DIR"
 }
 
+prepare_config_dir() {
+    print_step "Bereite /var/local/silverblue-config vor..."
+    sudo mkdir -p /var/local/silverblue-config
+    sudo chmod 700 /var/local/silverblue-config
+}
+
 prepare_environment() {
     print_step "Bereite die Python-Umgebung vor..."
     python3 -m venv venv
@@ -84,6 +90,7 @@ echo -e "Das System wird nun eingerichtet.\n"
 
 check_prerequisites
 prepare_repository
+prepare_config_dir
 prepare_environment
 run_playbook
 
