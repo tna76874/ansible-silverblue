@@ -1,6 +1,6 @@
 ---
 - name: C-Compiler (gcc) installieren
-  ansible.builtin.package:
+  ansible.builtin.dnf:
     name: gcc
     state: present
 
