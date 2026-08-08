@@ -1,0 +1,7 @@
+---
+- name: System-Update über rpm-ostree herunterladen und stagen (ohne Reboot)
+  ansible.builtin.command:
+    cmd: rpm-ostree upgrade
+  register: ostree_upgrade
+  changed_when: "'No upgrade available' not in ostree_upgrade.stdout"
+  failed_when: ostree_upgrade.rc != 0 and 'No upgrade available' not in ostree_upgrade.stdout
