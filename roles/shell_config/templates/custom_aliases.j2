@@ -1,15 +1,26 @@
 alias update_url='bash <(curl -sL https://raw.githubusercontent.com/tna76874/ansible-silverblue/main/setup.sh)'
 alias update='silverblue-update'
+
 update_tag() {
     local target_dir="/var/local/silverblue-setup"
-    if [ ! -d "$target_dir" ]; then
-        echo "Fehler: Setup-Verzeichnis nicht gefunden."
+
+    if [ ! -d "$target_dir/.git" ]; then
+        echo "Fehler: Setup-Repository in $target_dir nicht gefunden."
         return 1
+    }
+
+    echo "Aktualisiere lokales Git-Repository..."
+    if ! (cd "$target_dir" && git reset --hard HEAD && git clean -fd && git pull); then
+        echo "Warnung: Git Pull fehlgeschlagen. Versuche fortzufahren..."
     fi
+
     cd "$target_dir" || return 1
+
     if [ $# -eq 0 ]; then
+        echo "Starte vollständiges Ansible-Playbook..."
         sudo ./venv/bin/ansible-playbook playbook.yml -c local
     else
+        echo "Starte Ansible-Playbook mit Tags: $*"
         sudo ./venv/bin/ansible-playbook playbook.yml -c local --tags "$@"
     fi
 }

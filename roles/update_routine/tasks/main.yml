@@ -32,33 +32,30 @@
     group: root
     mode: '4755'
 
-- name: Persistentes Icon- und App-Verzeichnis erstellen
+- name: Persistentes Icon-Verzeichnis erstellen
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: /usr/share/icons/hicolor/scalable/apps
     state: directory
     owner: root
     group: root
     mode: '0755'
-  loop:
-    - /var/local/share/icons
-    - /usr/local/share/applications
 
-- name: Eigenes Update-Icon nach /var/local/share/icons kopieren
+- name: Update-Icon an den globalen hicolor-Pfad kopieren
   ansible.builtin.copy:
     src: updateico.svg
-    dest: /var/local/share/icons/silverblue-update.svg
+    dest: /usr/share/icons/hicolor/scalable/apps/silverblue-update.svg
     owner: root
     group: root
     mode: '0644'
 
-- name: Globales Desktop-Icon für die Update-Routine in /usr/local/share/applications erstellen
+- name: Globales Desktop-Icon für die Update-Routine erstellen
   ansible.builtin.copy:
     content: |
       [Desktop Entry]
       Name=System Update (Silverblue)
       Comment=Aktualisiert das System via Ansible
       Exec=/usr/local/bin/silverblue-update
-      Icon=/var/local/share/icons/silverblue-update.svg
+      Icon=silverblue-update
       Terminal=true
       Type=Application
       Categories=System;
@@ -71,6 +68,6 @@
   ansible.builtin.command: "{{ item }}"
   loop:
     - update-desktop-database /usr/local/share/applications
-    - gtk-update-icon-cache -f -t /var/local/share/icons || true
+    - gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
   changed_when: false
   ignore_errors: true
