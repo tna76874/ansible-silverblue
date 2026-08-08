@@ -41,3 +41,8 @@
         - update_routine
         - runner
         - desktop
+
+    - role: ansible_pull
+      tags:
+        - ansible_pull
+        - pull

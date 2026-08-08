@@ -1,0 +1,43 @@
+---
+- name: Prüfen, ob die Pull-Konfiguration in /var/local/silverblue-config existiert
+  ansible.builtin.stat:
+    path: /var/local/silverblue-config/pull_vars.yml
+  register: pull_config_file
+
+- name: Ansible-Pull ausführen, falls Konfiguration vorhanden
+  when: pull_config_file.stat.exists
+  block:
+    - name: Variablen für ansible-pull laden
+      ansible.builtin.include_vars:
+        file: /var/local/silverblue-config/pull_vars.yml
+
+    - name: Vault-Passwort temporär in Datei speichern (für ansible-pull)
+      ansible.builtin.copy:
+        content: "{{ pull_vault_password }}"
+        dest: /tmp/.vault_pass
+        mode: '0600'
+      when: pull_vault_password is defined and pull_vault_password | length > 0
+
+    - name: Ansible-Pull ausführen
+      ansible.builtin.command:
+        cmd: >
+          ansible-pull
+          -U https://{{ pull_token }}:@{{ pull_repo_url | regex_replace('^https://', '') }}
+          {% if pull_vault_password is defined and pull_vault_password | length > 0 %}--vault-password-file /tmp/.vault_pass{% endif %}
+          {{ pull_playbook | default('playbook.yml') }}
+          -c local
+      register: ansible_pull_result
+      changed_when: true
+
+    - name: Temporäre Vault-Passwortdatei aufräumen
+      ansible.builtin.file:
+        path: /tmp/.vault_pass
+        state: absent
+  rescue:
+    - name: Temporäre Vault-Passwortdatei im Fehlerfall aufräumen
+      ansible.builtin.file:
+        path: /tmp/.vault_pass
+        state: absent
+    - name: Fehler ausgeben
+      ansible.builtin.fail:
+        msg: "Fehler beim Ausführen von ansible-pull."
