@@ -25,29 +25,37 @@
     cmd: /usr/local/go/bin/go build -o /usr/local/bin/silverblue-update /tmp/runner.go
     creates: /usr/local/bin/silverblue-update
 
-- name: Eigentümer auf root setzen und SUID-Bit aktivieren (Passwortlos für alle)
+- name: Eigentümer auf root setzen und SUID-Bit aktivieren
   ansible.builtin.file:
     path: /usr/local/bin/silverblue-update
     owner: root
     group: root
     mode: '4755'
 
-- name: Update-Icon direkt nach /usr/local/share/applications kopieren
+- name: Persistentes Verzeichnis in /var/local für das Icon erstellen
+  ansible.builtin.file:
+    path: /var/local/share/icons
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Icon sicher nach /var/local/share/icons kopieren
   ansible.builtin.copy:
     src: updateico.svg
-    dest: /usr/local/share/applications/silverblue-update.svg
+    dest: /var/local/share/icons/silverblue-update.svg
     owner: root
     group: root
     mode: '0644'
 
-- name: Globales Desktop-Icon mit direktem Pfad erstellen
+- name: Globales Desktop-Icon mit absolutem Pfad nach /var/local erstellen
   ansible.builtin.copy:
     content: |
       [Desktop Entry]
       Name=System Update
       Comment=Aktualisiert das System via Ansible
       Exec=/usr/local/bin/silverblue-update
-      Icon=/usr/local/share/applications/silverblue-update.svg
+      Icon=/var/local/share/icons/silverblue-update.svg
       Terminal=true
       Type=Application
       Categories=System;
@@ -55,3 +63,9 @@
     owner: root
     group: root
     mode: '0644'
+
+- name: Desktop-Datenbank aktualisieren
+  ansible.builtin.command:
+    cmd: update-desktop-database /usr/local/share/applications
+  changed_when: false
+  ignore_errors: true
