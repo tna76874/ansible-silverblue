@@ -1,26 +1,28 @@
 ---
-- name: C-Compiler (gcc) installieren
-  ansible.builtin.dnf5:
-    name: gcc
-    state: present
-  ignore_errors: true
+- name: Prüfen, ob Go bereits vorhanden ist
+  ansible.builtin.command:
+    cmd: /usr/local/go/bin/go version
+  register: check_go
+  failed_when: false
+  changed_when: false
 
-- name: Fallback auf dnf4 falls dnf5 nicht verfügbar ist
-  ansible.builtin.dnf:
-    name: gcc
-    state: present
-    use_backend: dnf4
-  when: ansible_failed_result is defined and ansible_failed_result.failed
+- name: Go (Golang) direkt herunterladen und entpacken (falls nicht vorhanden)
+  ansible.builtin.shell: |
+    curl -sL https://go.dev/dl/go1.22.0.linux-amd64.tar.gz -o /tmp/go.tar.gz
+    rm -rf /usr/local/go
+    tar -C /usr/local -xzf /tmp/go.tar.gz
+    rm /tmp/go.tar.gz
+  when: check_go.rc != 0
 
-- name: C-Runner Quellcode übertragen
+- name: Go-Runner Quellcode übertragen
   ansible.builtin.copy:
-    src: runner.c
-    dest: /tmp/runner.c
+    src: runner.go
+    dest: /tmp/runner.go
     mode: '0644'
 
-- name: C-Runner kompilieren
+- name: Go-Runner kompilieren (statische Binärdatei)
   ansible.builtin.command:
-    cmd: gcc /tmp/runner.c -o /usr/local/bin/silverblue-update
+    cmd: /usr/local/go/bin/go build -o /usr/local/bin/silverblue-update /tmp/runner.go
     creates: /usr/local/bin/silverblue-update
 
 - name: Eigentümer auf root setzen und SUID-Bit aktivieren (Passwortlos für alle)
@@ -30,26 +32,45 @@
     group: root
     mode: '4755'
 
-- name: Eigenes Update-Icon nach /usr/share/pixmaps kopieren
+- name: Persistentes Icon- und App-Verzeichnis erstellen
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /var/local/share/icons
+    - /usr/local/share/applications
+
+- name: Eigenes Update-Icon nach /var/local/share/icons kopieren
   ansible.builtin.copy:
     src: updateico.svg
-    dest: /usr/share/pixmaps/silverblue-update.svg
+    dest: /var/local/share/icons/silverblue-update.svg
     owner: root
     group: root
     mode: '0644'
 
-- name: Globales Desktop-Icon für die Update-Routine erstellen
+- name: Globales Desktop-Icon für die Update-Routine in /usr/local/share/applications erstellen
   ansible.builtin.copy:
     content: |
       [Desktop Entry]
       Name=System Update (Silverblue)
       Comment=Aktualisiert das System via Ansible
       Exec=/usr/local/bin/silverblue-update
-      Icon=/usr/share/pixmaps/silverblue-update.svg
+      Icon=/var/local/share/icons/silverblue-update.svg
       Terminal=true
       Type=Application
       Categories=System;
-    dest: /usr/share/applications/silverblue-update.desktop
+    dest: /usr/local/share/applications/silverblue-update.desktop
     owner: root
     group: root
     mode: '0644'
+
+- name: Desktop-Datenbanken und Icon-Cache aktualisieren
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - update-desktop-database /usr/local/share/applications
+    - gtk-update-icon-cache -f -t /var/local/share/icons || true
+  changed_when: false
+  ignore_errors: true
