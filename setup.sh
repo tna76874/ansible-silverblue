@@ -85,6 +85,12 @@ run_playbook() {
     CONFIG_FILE="/var/local/silverblue-config/pull_vars.yml"
     
     if [ -d "$INTERNAL_REPO_DIR" ]; then
+        # Prüfen, ob die Config-Datei existiert, bevor das interne Playbook startet
+        if [ ! -f "$CONFIG_FILE" ]; then
+            echo -e "\033[1;33mHinweis: Konfigurationsdatei '$CONFIG_FILE' nicht gefunden. Überspringe internes Setup-Playbook.\033[0m"
+            return 0
+        fi
+
         print_step "Starte das interne Setup-Playbook..."
         
         VAULT_PASS=""
