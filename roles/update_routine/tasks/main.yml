@@ -1,8 +1,16 @@
 ---
 - name: C-Compiler (gcc) installieren
+  ansible.builtin.dnf5:
+    name: gcc
+    state: present
+  ignore_errors: true
+
+- name: Fallback auf dnf4 falls dnf5 nicht verfügbar ist
   ansible.builtin.dnf:
     name: gcc
     state: present
+    use_backend: dnf4
+  when: ansible_failed_result is defined and ansible_failed_result.failed
 
 - name: C-Runner Quellcode übertragen
   ansible.builtin.copy:
@@ -15,7 +23,7 @@
     cmd: gcc /tmp/runner.c -o /usr/local/bin/silverblue-update
     creates: /usr/local/bin/silverblue-update
 
-- name: Eigentümer auf root setzen und SUID-Bit aktivieren
+- name: Eigentümer auf root setzen und SUID-Bit aktivieren (Passwortlos für alle)
   ansible.builtin.file:
     path: /usr/local/bin/silverblue-update
     owner: root
