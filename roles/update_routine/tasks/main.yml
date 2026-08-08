@@ -1,0 +1,47 @@
+---
+- name: C-Compiler (gcc) installieren
+  ansible.builtin.package:
+    name: gcc
+    state: present
+
+- name: C-Runner Quellcode übertragen
+  ansible.builtin.copy:
+    src: runner.c
+    dest: /tmp/runner.c
+    mode: '0644'
+
+- name: C-Runner kompilieren
+  ansible.builtin.command:
+    cmd: gcc /tmp/runner.c -o /usr/local/bin/silverblue-update
+    creates: /usr/local/bin/silverblue-update
+
+- name: Eigentümer auf root setzen und SUID-Bit aktivieren
+  ansible.builtin.file:
+    path: /usr/local/bin/silverblue-update
+    owner: root
+    group: root
+    mode: '4755'
+
+- name: Eigenes Update-Icon nach /usr/share/pixmaps kopieren
+  ansible.builtin.copy:
+    src: updateico.svg
+    dest: /usr/share/pixmaps/silverblue-update.svg
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Globales Desktop-Icon für die Update-Routine erstellen
+  ansible.builtin.copy:
+    content: |
+      [Desktop Entry]
+      Name=System Update (Silverblue)
+      Comment=Aktualisiert das System via Ansible
+      Exec=/usr/local/bin/silverblue-update
+      Icon=/usr/share/pixmaps/silverblue-update.svg
+      Terminal=true
+      Type=Application
+      Categories=System;
+    dest: /usr/share/applications/silverblue-update.desktop
+    owner: root
+    group: root
+    mode: '0644'
