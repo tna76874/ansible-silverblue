@@ -1,31 +1,16 @@
 ---
-- name: Prüfen, ob Go bereits vorhanden ist
-  ansible.builtin.command:
-    cmd: /usr/local/go/bin/go version
-  register: check_go
-  failed_when: false
-  changed_when: false
-
-- name: Go (Golang) direkt herunterladen und entpacken (falls nicht vorhanden)
-  ansible.builtin.shell: |
-    curl -sL https://go.dev/dl/go1.22.0.linux-amd64.tar.gz -o /tmp/go.tar.gz
-    rm -rf /usr/local/go
-    tar -C /usr/local -xzf /tmp/go.tar.gz
-    rm /tmp/go.tar.gz
-  when: check_go.rc != 0
-
 - name: Go-Runner Quellcode übertragen
   ansible.builtin.copy:
     src: runner.go
     dest: /tmp/runner.go
     mode: '0644'
 
-- name: Go-Runner kompilieren (statische Binärdatei)
+- name: Go-Runner mit zentralem Go kompilieren (statische Binärdatei)
   ansible.builtin.command:
-    cmd: /usr/local/go/bin/go build -o /usr/local/bin/silverblue-update /tmp/runner.go
+    cmd: "{{ go_install_dir }}/bin/go build -o /usr/local/bin/silverblue-update /tmp/runner.go"
     creates: /usr/local/bin/silverblue-update
 
-- name: Eigentümer auf root setzen und SUID-Bit aktivieren
+- name: Eigentümer auf root setzen und SUID-Bit aktivieren (Passwortlos für alle)
   ansible.builtin.file:
     path: /usr/local/bin/silverblue-update
     owner: root
@@ -52,7 +37,7 @@
   ansible.builtin.copy:
     content: |
       [Desktop Entry]
-      Name=System Update
+      Name=System Update (Silverblue)
       Comment=Aktualisiert das System via Ansible
       Exec=/usr/local/bin/silverblue-update
       Icon=/var/local/share/icons/silverblue-update.svg

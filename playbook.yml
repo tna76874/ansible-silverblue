@@ -30,6 +30,12 @@
         - security
         - firewall
 
+    - role: go_setup
+      tags:
+        - go_setup
+        - golang
+        - go
+
     - role: update_routine
       tags:
         - update_routine

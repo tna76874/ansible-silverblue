@@ -1,0 +1,19 @@
+---
+- name: Prüfen, ob Go bereits installiert ist
+  ansible.builtin.command:
+    cmd: "{{ go_install_dir }}/bin/go version"
+  register: check_go
+  failed_when: false
+  changed_when: false
+
+- name: Go Version prüfen (ob es die Zielversion ist)
+  ansible.builtin.set_fact:
+    go_installed: "{{ check_go.rc == 0 and (go_version in check_go.stdout) }}"
+
+- name: Go (Golang) direkt herunterladen und installieren (falls nicht oder falsche Version)
+  ansible.builtin.shell: |
+    curl -sL https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz -o /tmp/go.tar.gz
+    rm -rf {{ go_install_dir }}
+    tar -C /usr/local -xzf /tmp/go.tar.gz
+    rm /tmp/go.tar.gz
+  when: not go_installed
