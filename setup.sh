@@ -78,8 +78,37 @@ prepare_environment() {
 }
 
 run_playbook() {
-    print_step "Starte die Einrichtung (ohne Passwortabfrage)..."
+    print_step "Starte die Einrichtung..."
     ./venv/bin/ansible-playbook playbook.yml -c local
+
+    INTERNAL_REPO_DIR="/var/local/silverblue-internal-repo"
+    CONFIG_FILE="/var/local/silverblue-config/pull_vars.yml"
+    
+    if [ -d "$INTERNAL_REPO_DIR" ]; then
+        print_step "Starte das interne Setup-Playbook..."
+        
+        VAULT_PASS=""
+        if [ -f "$CONFIG_FILE" ]; then
+            VAULT_PASS=$(python3 -c "
+import yaml
+try:
+    with open('$CONFIG_FILE') as f:
+        data = yaml.safe_load(f)
+        val = data.get('pull_vault_password')
+        if val:
+            print(val)
+except Exception:
+    pass
+")
+        fi
+
+        # Playbook ausführen (entweder mit Umgebungsvariable oder ganz ohne Vault)
+        if [ -n "$VAULT_PASS" ]; then
+            ANSIBLE_VAULT_PASSWORD="$VAULT_PASS" ./venv/bin/ansible-playbook "$INTERNAL_REPO_DIR/playbook.yml" --vault-password-file /dev/stdin -c local <<< "$VAULT_PASS"
+        else
+            ./venv/bin/ansible-playbook "$INTERNAL_REPO_DIR/playbook.yml" -c local
+        fi
+    fi
 }
 
 # Hauptablauf

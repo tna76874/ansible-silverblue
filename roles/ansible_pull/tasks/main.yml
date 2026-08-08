@@ -4,40 +4,30 @@
     path: /var/local/silverblue-config/pull_vars.yml
   register: pull_config_file
 
-- name: Ansible-Pull ausführen, falls Konfiguration vorhanden
+- name: Ansible-Repository lokal klonen, falls Konfiguration vorhanden
   when: pull_config_file.stat.exists
   block:
-    - name: Variablen für ansible-pull laden
+    - name: Variablen für das Setup laden
       ansible.builtin.include_vars:
         file: /var/local/silverblue-config/pull_vars.yml
 
-    - name: Vault-Passwort temporär in Datei speichern (für ansible-pull)
-      ansible.builtin.copy:
-        content: "{{ pull_vault_password }}"
-        dest: /tmp/.vault_pass
-        mode: '0600'
-      when: pull_vault_password is defined and pull_vault_password | length > 0
+    - name: Preflight - Prüfen, ob pull_repo_url definiert ist
+      ansible.builtin.assert:
+        that:
+          - pull_repo_url is defined
+          - pull_repo_url | length > 0
+        fail_msg: "Die Variable 'pull_repo_url' ist in /var/local/silverblue-config/pull_vars.yml nicht definiert."
 
-    - name: Ansible-Pull ausführen
-      ansible.builtin.command:
-        cmd: >
-          ansible-pull
-          -U https://{{ pull_token }}:@{{ pull_repo_url | regex_replace('^https://', '') }}
-          {% if pull_vault_password is defined and pull_vault_password | length > 0 %}--vault-password-file /tmp/.vault_pass{% endif %}
-          {{ pull_playbook | default('playbook.yml') }}
-          -c local
-      register: ansible_pull_result
-      changed_when: true
+    - name: Preflight - Zielverzeichnis für das interne Repo vorbereiten
+      ansible.builtin.file:
+        path: /var/local/silverblue-internal-repo
+        state: directory
+        mode: '0700'
 
-    - name: Temporäre Vault-Passwortdatei aufräumen
-      ansible.builtin.file:
-        path: /tmp/.vault_pass
-        state: absent
-  rescue:
-    - name: Temporäre Vault-Passwortdatei im Fehlerfall aufräumen
-      ansible.builtin.file:
-        path: /tmp/.vault_pass
-        state: absent
-    - name: Fehler ausgeben
-      ansible.builtin.fail:
-        msg: "Fehler beim Ausführen von ansible-pull."
+    - name: Repository lokal klonen oder aktualisieren
+      ansible.builtin.git:
+        repo: "https://{{ pull_token }}:@{{ pull_repo_url | regex_replace('^https://', '') }}"
+        dest: /var/local/silverblue-internal-repo
+        version: "{{ pull_repo_branch | default('main') }}"
+        force: true
+      register: repo_clone
