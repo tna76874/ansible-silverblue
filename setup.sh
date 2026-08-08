@@ -69,8 +69,8 @@ prepare_environment() {
     source venv/bin/activate
 
     echo "Installiere notwendige Werkzeuge im Hintergrund..."
-    pip install --upgrade pip --quiet
-    pip install ansible-core --quiet
+    sudo HOME=/root pip install --upgrade pip --quiet
+    sudo HOME=/root pip install ansible-core --quiet
 
     print_step "Lade Software-Bausteine herunter..."
     ansible-galaxy collection install community.general --force
