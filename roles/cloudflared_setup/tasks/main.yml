@@ -1,0 +1,49 @@
+---
+- name: Prüfen, ob cloudflared bereits installiert ist
+  ansible.builtin.command:
+    cmd: "{{ cloudflared_install_dir }}/cloudflared --version"
+  register: check_cloudflared
+  failed_when: false
+  changed_when: false
+
+- name: Aktuelle Version herausfiltern
+  ansible.builtin.set_fact:
+    cloudflared_current_version: "{{ (check_cloudflared.stdout | regex_search('([0-9]{4}\\.[0-9]+\\.[0-9]+)', '\\1')) | default('0.0.0', true) }}"
+  when: check_cloudflared.rc == 0
+
+- name: Fallback, falls cloudflared nicht installiert ist
+  ansible.builtin.set_fact:
+    cloudflared_current_version: "0.0.0"
+  when: check_cloudflared.rc != 0
+
+- name: Neueste Version von der GitHub-API abrufen
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/cloudflare/cloudflared/releases/latest"
+    return_content: true
+  register: github_release
+  until: github_release.status == 200
+  retries: 3
+  delay: 5
+
+- name: Versionsnummer aus GitHub-Antwort extrahieren
+  ansible.builtin.set_fact:
+    cloudflared_latest_version: "{{ github_release.json.tag_name | regex_replace('^v', '') }}"
+
+- name: Status-Variable für Update-Bedarf setzen
+  ansible.builtin.set_fact:
+    cloudflared_update_needed: "{{ cloudflared_current_version != cloudflared_latest_version }}"
+
+- name: Debug - Versionsabgleich anzeigen
+  ansible.builtin.debug:
+    msg: "Installierte Version: {{ cloudflared_current_version }} | Neueste GitHub-Version: {{ cloudflared_latest_version }} | Update nötig: {{ cloudflared_update_needed }}"
+
+- name: cloudflared herunterladen und aktualisieren (falls neuer)
+  when: cloudflared_update_needed
+  block:
+    - name: Offizielle Binärdatei mit exaktem Tag von GitHub herunterladen
+      ansible.builtin.get_url:
+        url: "https://github.com/cloudflare/cloudflared/releases/download/{{ cloudflared_latest_version }}/cloudflared-linux-amd64"
+        dest: "{{ cloudflared_install_dir }}/cloudflared"
+        mode: '0755'
+        owner: root
+        group: root

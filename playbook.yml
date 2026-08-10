@@ -19,6 +19,11 @@
         - rpm_packages
         - ostree_pkgs
 
+    - role: cloudflared_setup
+      tags:
+        - cloudflared_setup
+        - cloudflared
+
     - role: system_update
       tags:
         - system_update

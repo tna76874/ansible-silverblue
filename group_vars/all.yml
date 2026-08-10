@@ -73,3 +73,5 @@ firewall_allowed_ports: []
 
 go_version: "1.26.5"
 go_install_dir: "/usr/local/go"
+
+cloudflared_install_dir: "/usr/local/bin"

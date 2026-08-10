@@ -8,7 +8,7 @@
 - name: Go-Runner mit zentralem Go kompilieren (statische Binärdatei)
   ansible.builtin.command:
     cmd: "{{ go_install_dir }}/bin/go build -o /usr/local/bin/silverblue-update /tmp/runner.go"
-    creates: /usr/local/bin/silverblue-update
+    # creates: /usr/local/bin/silverblue-update
 
 - name: Eigentümer auf root setzen und SUID-Bit aktivieren (Passwortlos für alle)
   ansible.builtin.file:
