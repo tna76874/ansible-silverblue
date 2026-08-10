@@ -35,14 +35,12 @@ flatpak_apps:
   - { package: "org.keepassxc.KeePassXC", repo: "flathub", state: present }
   - { package: "org.cryptomator.Cryptomator", repo: "flathub", state: present }
   - { package: "io.github.peazip.PeaZip", repo: "flathub", state: present }
-  - { package: "org.localsend.localsend_app", repo: "flathub", state: present }
+  - { package: "org.localsend.localsend_app", repo: "flathub", state: present, ports: ["53317/tcp", "53317/udp"] }
   - { package: "com.nextcloud.desktopclient.nextcloud", repo: "flathub", state: present }
   - { package: "org.zotero.Zotero", repo: "flathub", state: present }
   - { package: "fr.romainvigier.MetadataCleaner", repo: "flathub", state: present }
 
-firewall_allowed_ports:
-  - "53317/tcp"
-  - "53317/udp"
+firewall_allowed_ports: []
 
 go_version: "1.26.5"
 go_install_dir: "/usr/local/go"

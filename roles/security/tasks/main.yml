@@ -12,7 +12,7 @@
     state: present
     permanent: true
 
-- name: Ausnahmen aus globalen Variablen erlauben
+- name: Globale Ausnahmen aus firewall_allowed_ports erlauben
   ansible.posix.firewalld:
     port: "{{ item }}"
     zone: public
@@ -20,3 +20,12 @@
     permanent: true
     immediate: true
   loop: "{{ firewall_allowed_ports }}"
+
+- name: App-spezifische Ports aus flatpak_apps erlauben (falls definiert)
+  ansible.posix.firewalld:
+    port: "{{ item.1 }}"
+    zone: public
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ flatpak_apps | subelements('ports', skip_missing=True) }}"
