@@ -17,15 +17,15 @@
     group: root
     mode: '4755'
 
-- name: Persistentes Verzeichnis in /var/local für das Icon erstellen
+- name: Verzeichnis für Desktop-Icons sicherstellen
   ansible.builtin.file:
-    path: /var/local/share/icons
+    path: /usr/local/share/applications
     state: directory
     owner: root
     group: root
     mode: '0755'
 
-- name: Globales Desktop-Icon mit absolutem Pfad nach /var/local erstellen
+- name: Desktop-Icons
   ansible.builtin.copy:
     content: |
       [Desktop Entry]
