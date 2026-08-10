@@ -44,5 +44,5 @@ firewall_allowed_ports:
   - "53317/tcp"
   - "53317/udp"
 
-go_version: "1.22.0"
+go_version: "1.26.5"
 go_install_dir: "/usr/local/go"
