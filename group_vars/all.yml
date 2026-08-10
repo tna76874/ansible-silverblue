@@ -41,6 +41,10 @@ flatpak_apps:
   - { package: "org.zotero.Zotero", repo: "flathub", state: present }
   - { package: "fr.romainvigier.MetadataCleaner", repo: "flathub", state: present }
 
+rpm_ostree_packages:
+  - { name: "htop", state: "present" }
+  - { name: "zsh", state: "present" }
+
 firewall_allowed_ports: []
 
 go_version: "1.26.5"
