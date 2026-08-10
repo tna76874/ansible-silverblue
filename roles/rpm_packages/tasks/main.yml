@@ -1,21 +1,33 @@
 ---
-- name: Pakete mit state 'present' in einem Rutsch installieren
-  community.general.rpm_ostree_pkg:
-    name: "{{ rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | map(attribute='name') | list }}"
-    state: present
-    apply_live: true
-  register: rpm_ostree_install
-  until: rpm_ostree_install is not failed
-  retries: 5
-  delay: 10
+- name: Pakete mit state 'present' installieren
+  block:
+    - name: Debug - Zu installierende Pakete anzeigen
+      ansible.builtin.debug:
+        msg: "Folgende RPM-Pakete werden via rpm-ostree installiert: {{ rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | map(attribute='name') | list }}"
+
+    - name: RPM-Pakete installieren
+      community.general.rpm_ostree_pkg:
+        name: "{{ rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | map(attribute='name') | list }}"
+        state: present
+        apply_live: true
+      register: rpm_ostree_install
+      until: rpm_ostree_install is not failed
+      retries: 5
+      delay: 10
   when: (rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | list | length) > 0
 
-- name: Pakete mit state 'absent' in einem Rutsch entfernen
-  community.general.rpm_ostree_pkg:
-    name: "{{ rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | map(attribute='name') | list }}"
-    state: absent
-  register: rpm_ostree_remove
-  until: rpm_ostree_remove is not failed
-  retries: 5
-  delay: 10
+- name: Pakete mit state 'absent' entfernen
+  block:
+    - name: Debug - Zu entfernende Pakete anzeigen
+      ansible.builtin.debug:
+        msg: "Folgende RPM-Pakete werden via rpm-ostree entfernt: {{ rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | map(attribute='name') | list }}"
+
+    - name: RPM-Pakete entfernen
+      community.general.rpm_ostree_pkg:
+        name: "{{ rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | map(attribute='name') | list }}"
+        state: absent
+      register: rpm_ostree_remove
+      until: rpm_ostree_remove is not failed
+      retries: 5
+      delay: 10
   when: (rpm_ostree_packages | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | list | length) > 0
