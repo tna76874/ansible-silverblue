@@ -42,8 +42,32 @@ flatpak_apps:
   - { package: "fr.romainvigier.MetadataCleaner", repo: "flathub", state: present }
 
 rpm_ostree_packages:
-  - { name: "htop", state: "present" }
+  # Shell & Editor
   - { name: "zsh", state: "present" }
+  - { name: "nano", state: "present" }
+  
+  # System & Monitoring
+  - { name: "htop", state: "present" }
+  - { name: "bmon", state: "present" }
+  - { name: "gdu", state: "present" }
+  - { name: "inxi", state: "present" }
+  
+  # Netzwerk & Web
+  - { name: "wget", state: "present" }
+  - { name: "curl", state: "present" }
+  - { name: "bind-utils", state: "present" }
+  - { name: "net-tools", state: "present" }
+  - { name: "traceroute", state: "present" }
+  
+  # Archive & Helfer
+  - { name: "unzip", state: "present" }
+  - { name: "p7zip", state: "present" }
+  - { name: "tar", state: "present" }
+  - { name: "pwgen", state: "present" }
+  
+  # Backup & Cloud
+  - { name: "rclone", state: "present" }
+  - { name: "restic", state: "present" }
 
 firewall_allowed_ports: []
 
