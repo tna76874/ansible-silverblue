@@ -13,6 +13,7 @@ flatpak_apps:
   - { package: "org.audacityteam.Audacity", repo: "flathub", state: present }
   - { package: "org.kde.kdenlive", repo: "flathub", state: present }
   # # Voice chat / communication
+  - { package: "org.mozilla.thunderbird_esr", repo: "flathub", state: present }
   # - { package: "org.signal.Signal", repo: "flathub", state: present }
   # Documents
   - { package: "net.codeindustry.MasterPDFEditor", repo: "flathub", state: present }
