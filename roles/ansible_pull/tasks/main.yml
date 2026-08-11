@@ -1,5 +1,5 @@
 ---
-- name: Prüfen, ob die Pull-Konfiguration in /var/local/silverblue-config existiert
+- name: Prüfen, ob die Pull-Konfiguration existiert
   ansible.builtin.stat:
     path: /var/local/silverblue-config/pull_vars.yml
   register: pull_config_file
@@ -11,23 +11,49 @@
       ansible.builtin.include_vars:
         file: /var/local/silverblue-config/pull_vars.yml
 
-    - name: Preflight - Prüfen, ob pull_repo_url definiert ist
+    - name: Preflight - Prüfen, ob notwendige Variablen definiert sind
       ansible.builtin.assert:
         that:
           - pull_repo_url is defined
           - pull_repo_url | length > 0
-        fail_msg: "Die Variable 'pull_repo_url' ist in /var/local/silverblue-config/pull_vars.yml nicht definiert."
+          - pull_token is defined
+          - pull_token | length > 0
+        fail_msg: "Die Variablen 'pull_repo_url' und/oder 'pull_token' sind in /var/local/silverblue-config/pull_vars.yml nicht korrekt definiert."
 
     - name: Preflight - Zielverzeichnis für das interne Repo vorbereiten
       ansible.builtin.file:
         path: /var/local/silverblue-internal-repo
         state: directory
         mode: '0700'
+        owner: root
+        group: root
 
-    - name: Repository lokal klonen oder aktualisieren
-      ansible.builtin.git:
-        repo: "https://{{ pull_token }}:@{{ pull_repo_url | regex_replace('^https://', '') }}"
-        dest: /var/local/silverblue-internal-repo
-        version: "{{ pull_repo_branch | default('main') }}"
-        force: true
-      register: repo_clone
+    - name: Repository-Operationen mit automatischem Fallback bei Fehlern
+      block:
+        - name: Repository lokal klonen oder aktualisieren
+          ansible.builtin.git:
+            repo: "https://{{ pull_token }}:@{{ pull_repo_url | regex_replace('^https?://', '') }}"
+            dest: /var/local/silverblue-internal-repo
+            version: "{{ pull_repo_branch | default('main') }}"
+            force: true
+          register: repo_clone
+          no_log: true
+
+      rescue:
+        - name: Warnung ausgeben, dass ein Fehler aufgetreten ist
+          ansible.builtin.debug:
+            msg: "Fehler beim Klonen/Aktualisieren des Repositories. Das Verzeichnis wird bereinigt und ein neuer Klonversuch gestartet."
+
+        - name: Beschädigtes Zielverzeichnis komplett löschen
+          ansible.builtin.file:
+            path: /var/local/silverblue-internal-repo
+            state: absent
+
+        - name: Repository nach Bereinigung erneut klonen
+          ansible.builtin.git:
+            repo: "https://{{ pull_token }}:@{{ pull_repo_url | regex_replace('^https?://', '') }}"
+            dest: /var/local/silverblue-internal-repo
+            version: "{{ pull_repo_branch | default('main') }}"
+            force: true
+          register: repo_clone_retry
+          no_log: true
