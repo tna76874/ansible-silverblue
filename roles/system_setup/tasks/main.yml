@@ -14,8 +14,10 @@
     remote: "{{ item.repo | default('flathub') }}"
     version: "{{ item.version | default(omit) }}"
   loop: "{{ flatpak_apps }}"
+  ignore_errors: true
 
 - name: Alle installierten systemweiten Flatpaks aktualisieren
   ansible.builtin.command:
     cmd: flatpak update --system --noninteractive
   changed_when: false
+  ignore_errors: true
